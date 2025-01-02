@@ -8,12 +8,15 @@ class Board:
         self.width = width
         self.height = height
         self.board = [[0] * width for _ in range(height)]
+        self.cell_states = [[0] * width for _ in range(height)]  # Отслеживание состояния клеток
         self.left = 0
         self.top = 0
-        self.cell_width = 68  # Ширина клетки изменена на 108 пикселей
-        self.cell_height = 52  # Высота клетки изменена на 78 пикселей
-        self.cell_image = pygame.transform.scale(self.load_image('aufgeräumt.png'), (
-        self.cell_width, self.cell_height))  # Загружаем и изменяем размер изображения клетки
+        self.cell_width = 68
+        self.cell_height = 52
+        self.default_cell_image = pygame.transform.scale(self.load_image('einschlief.png'),
+                                                         (self.cell_width, self.cell_height))
+        self.activated_cell_image = pygame.transform.scale(self.load_image('aufgeräumt.png'), (
+        self.cell_width, self.cell_height))  # Новое изображение для активированных клеток
 
     def load_image(self, name, colorkey=None):
         if not os.path.isfile(name):
@@ -36,21 +39,21 @@ class Board:
         self.left = left
         self.top = top
 
+    def activate_cell(self, x, y):
+        if 0 <= x < self.width and 0 <= y < self.height:
+            self.cell_states[y][x] = 1  # Помечаем эту клетку как активированную
+
     def render(self, screen, offset_x, offset_y):
         for i, line in enumerate(self.board):
             for j, elem in enumerate(line):
-                if elem == 1:
-                    # Здесь можно добавить логику для отрисовки заполненной клетки (если необходимо)
-                    pass
+                if self.cell_states[i][j] == 1:
+                    # Отрисовка изображения активированной клетки
+                    screen.blit(self.activated_cell_image, (offset_x + j * self.cell_width,
+                                                            offset_y + i * self.cell_height))
                 else:
-                    # Отрисовка клетки с использованием загруженного изображения
-                    rect = (
-                        offset_x + j * self.cell_width,
-                        offset_y + i * self.cell_height,
-                        self.cell_width,
-                        self.cell_height
-                    )
-                    screen.blit(self.cell_image, rect)  # Отрисовываем изображение клетки на экране
+                    # Отрисовка изображения обычной клетки
+                    screen.blit(self.default_cell_image, (offset_x + j * self.cell_width,
+                                                          offset_y + i * self.cell_height))
 
 
 class Player:
@@ -64,40 +67,37 @@ class Player:
             if self.pos_x < len(self.board.board[0]) - 1:
                 self.pos_x += 1
                 return True
-        if direction == 'left' and self.pos_x > 0:
-            self.pos_x -= 1
-            return True
-        if direction == 'bottom':
+        elif direction == 'left':
+            if self.pos_x > 0:
+                self.pos_x -= 1
+                return True
+        elif direction == 'bottom':
             if self.pos_y < len(self.board.board) - 1:
                 self.pos_y += 1
                 return True
 
+    def enter_cell(self):
+        # Активировать клетку при входе в нее
+        self.board.activate_cell(self.pos_x, self.pos_y)
+
 
 class Game:
     def __init__(self):
-        # Инициализация всех атрибутов игры
         pygame.init()
         size = width, height = 935, 660
         screen = pygame.display.set_mode(size)
         pygame.display.set_caption('Инициализация игры')
 
-        # Увеличиваем ширину на 34 клетки и высоту на еще 38 клеток.
-        i_width = 51  # Исходная ширина поля
-        i_height = 50  # Исходная высота поля
+        i_width = 51
+        i_height = 50
 
-        # Инициализация объектов игры с новыми размерами поля.
         self.board = Board(i_width, i_height)
         self.board.set_view(0, 165, 55)
 
-        # Устанавливаем начальную позицию игрока на одну клетку ниже поля.
-        initial_pos_x = (self.board.width // 2) - 1  # Центрируем по X
-        initial_pos_y = -1  # На одну клетку выше поля
+        initial_pos_x = (self.board.width // 2) - 1
+        initial_pos_y = -1
 
-        # Создаем игрока с новыми координатами.
         self.player = Player(initial_pos_x, initial_pos_y, self.board)
-
-        # Инициализация группы спрайтов.
-        self.all_sprites = pygame.sprite.Group()
 
     def load_image(self, name, colorkey=None):
         fullname = os.path.join('', name)
@@ -117,10 +117,6 @@ class Game:
 
         return image
 
-    def set_player(self):
-        # Метод для установки позиции игрока на доске.
-        pass
-
 
 if __name__ == '__main__':
     size = width, height = 935, 660
@@ -132,13 +128,8 @@ if __name__ == '__main__':
 
     sprite = pygame.sprite.Sprite()
     sprite.image = game.load_image('player.png')
-
-    # Устанавливаем начальную позицию спрайта с учетом того,
-    # что он должен быть на одной клетке ниже поля.
     sprite.rect = sprite.image.get_rect(topleft=(game.board.cell_width * game.player.pos_x,
                                                  game.board.cell_height * (game.player.pos_y + 2)))
-
-    game.all_sprites.add(sprite)
 
     move_direction = None
     last_move_time = pygame.time.get_ticks()
@@ -164,6 +155,8 @@ if __name__ == '__main__':
         current_time = pygame.time.get_ticks()
 
         if move_direction and current_time - last_move_time >= move_interval:
+            previous_pos_x, previous_pos_y = game.player.pos_x, game.player.pos_y
+
             if move_direction == 'left':
                 game.player.move('left')
             elif move_direction == 'right':
@@ -171,28 +164,27 @@ if __name__ == '__main__':
             elif move_direction == 'bottom':
                 game.player.move('bottom')
 
+            # Проверяем, вошел ли игрок в новую клетку и активируем ее.
+            if (previous_pos_x != game.player.pos_x) or (previous_pos_y != game.player.pos_y):
+                game.player.enter_cell()
+
             last_move_time = current_time
 
-        screen.fill((2, 137, 255))  # Изменяем цвет фона ниже поля
+        screen.fill((2, 137, 255))
 
-        # Вычисляем смещение для центрации камеры на игроке.
         offset_x = width // 2 - sprite.rect.width // 2 - game.board.cell_width * game.player.pos_x
         offset_y = height // 2 - sprite.rect.height // 2 - game.board.cell_height * (game.player.pos_y + 2)
 
-        # Отрисовка доски с учетом смещения.
         game.board.render(screen, offset_x, offset_y)
 
-        # Обновляем позицию спрайта игрока с учетом смещения.
         sprite.rect.topleft = (game.board.cell_width * game.player.pos_x,
                                game.board.cell_height * (game.player.pos_y))
 
-        # Отрисовка спрайтов с учетом смещения.
-
-        for s in game.all_sprites:
+        for s in [sprite]:
             s.rect.x += offset_x
             s.rect.y += offset_y
 
-        game.all_sprites.draw(screen)
+        screen.blit(sprite.image, sprite.rect)
 
         pygame.display.flip()
 
