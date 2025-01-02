@@ -16,7 +16,10 @@ class Board:
         self.default_cell_image = pygame.transform.scale(self.load_image('einschlief.png'),
                                                          (self.cell_width, self.cell_height))
         self.activated_cell_image = pygame.transform.scale(self.load_image('aufgeräumt.png'), (
-        self.cell_width, self.cell_height))  # Новое изображение для активированных клеток
+            self.cell_width, self.cell_height))  # Изображение для активированных клеток
+        # Изменено имя файла на extra-depth.png
+        self.blocked_cell_image = pygame.transform.scale(self.load_image('extra-depth.png'), (
+            self.cell_width, self.cell_height))  # Изображение для недоступных клеток
 
     def load_image(self, name, colorkey=None):
         if not os.path.isfile(name):
@@ -44,9 +47,21 @@ class Board:
             self.cell_states[y][x] = 1  # Помечаем эту клетку как активированную
 
     def render(self, screen, offset_x, offset_y):
-        for i, line in enumerate(self.board):
-            for j, elem in enumerate(line):
-                if self.cell_states[i][j] == 1:
+        for i in range(self.height):
+            for j in range(self.width):
+                # Отрисовка недоступных клеток по бокам и внизу
+                if j == 0 or j == self.width - 1 or i == self.height - 1:
+                    # Левый и правый край и нижний ряд
+                    screen.blit(self.blocked_cell_image, (offset_x + j * self.cell_width,
+                                                          offset_y + i * self.cell_height))
+                elif i == 0 and (j == 0 or j == self.width - 1):
+                    # Крайние клетки верхнего ряда как непроходимые
+                    screen.blit(self.blocked_cell_image, (offset_x + j * self.cell_width,
+                                                          offset_y + i * self.cell_height))
+                elif i == 0:
+                    # Пустые клетки верхнего ряда без спрайтов
+                    continue
+                elif self.cell_states[i][j] == 1:
                     # Отрисовка изображения активированной клетки
                     screen.blit(self.activated_cell_image, (offset_x + j * self.cell_width,
                                                             offset_y + i * self.cell_height))
@@ -59,26 +74,32 @@ class Board:
 class Player:
     def __init__(self, pos_x, pos_y, board):
         self.pos_x = pos_x
-        self.pos_y = pos_y
+        self.pos_y = pos_y + 1
         self.board = board
 
     def move(self, direction):
+        new_x, new_y = self.pos_x, self.pos_y
+
         if direction == 'right':
-            if self.pos_x < len(self.board.board[0]) - 1:
-                self.pos_x += 1
-                return True
+            new_x += 1
         elif direction == 'left':
-            if self.pos_x > 0:
-                self.pos_x -= 1
-                return True
+            new_x -= 1
         elif direction == 'bottom':
-            if self.pos_y < len(self.board.board) - 1:
-                self.pos_y += 1
+            new_y += 1
+
+        # Проверка на доступность новой позиции
+        if new_x >= 0 and new_x < len(self.board.board[0]) and new_y >= 0 and new_y < len(self.board.board):
+            # Проверяем недоступные клетки (боковые и нижний ряд)
+            if not (new_x == 0 or new_x == len(self.board.board[0]) - 1 or new_y == len(self.board.board) - 1 or (
+                    new_y == 0 and (new_x == 0 or new_x == len(self.board.board[0]) - 1))):
+                self.pos_x = new_x
+                self.pos_y = new_y
                 return True
 
     def enter_cell(self):
-        # Активировать клетку при входе в нее
-        self.board.activate_cell(self.pos_x, self.pos_y)
+        # Активировать клетку при входе в нее только если это не верхний ряд без спрайтов.
+        if self.pos_y > 0:
+            self.board.activate_cell(self.pos_x, self.pos_y)
 
 
 class Game:
@@ -88,8 +109,8 @@ class Game:
         screen = pygame.display.set_mode(size)
         pygame.display.set_caption('Инициализация игры')
 
-        i_width = 51
-        i_height = 50
+        i_width = 53  # Увеличиваем ширину на две клетки
+        i_height = 51  # Увеличиваем высоту на одну клетку
 
         self.board = Board(i_width, i_height)
         self.board.set_view(0, 165, 55)
