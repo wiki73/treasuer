@@ -244,15 +244,14 @@ if __name__ == '__main__':
         if move_direction and current_time - last_move_time >= move_interval:
             previous_pos_x, previous_pos_y = game.player.pos_x, game.player.pos_y
 
-            # Двигаем игрока только если камера не заблокирована в этом направлении
-            if move_direction == 'left' and not game.camera_locked['left']:
+            if move_direction == 'left':
                 game.player.move('left')
-            elif move_direction == 'right' and not game.camera_locked['right']:
+            elif move_direction == 'right':
                 game.player.move('right')
             elif move_direction == 'bottom':
                 game.player.move('bottom')
 
-            # Проверяем, вошел ли игрок в новую клетку и активируем ее...
+            # Проверяем, вошел ли игрок в новую клетку и активируем ее.
             if (previous_pos_x != game.player.pos_x) or (previous_pos_y != game.player.pos_y):
                 game.player.enter_cell()
 
