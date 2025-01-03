@@ -1,0 +1,91 @@
+Index: main.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import os\r\nimport sys\r\n\r\nimport pygame\r\n\r\n\r\nclass Board:\r\n    def __init__(self, width, height):\r\n        self.width = width\r\n        self.height = height\r\n        self.board = [[0] * width for _ in range(height)]\r\n        self.left = 0\r\n        self.top = 0\r\n        self.cell_size = 30\r\n        print(self.board)\r\n\r\n    def set_view(self, left, top, cell_size):\r\n        self.left = left\r\n        self.top = top\r\n        self.cell_size = cell_size\r\n\r\n    def render(self, screen):\r\n        for i, line in enumerate(self.board):\r\n            for j, elem in enumerate(line):\r\n                if elem == 1:\r\n                    rect = (\r\n                        self.left + j * self.cell_size, self.top + i * self.cell_size, self.cell_size, self.cell_size)\r\n                    pygame.draw.rect(screen, (0, 0, 0), rect)\r\n                    pygame.draw.rect(screen, (255, 255, 255), rect, 1)\r\n                    pygame.draw.line(screen, (0, 0, 255),\r\n                                     (self.left + j * self.cell_size + self.cell_size - 4,\r\n                                      self.top + i * self.cell_size + 4),\r\n                                     (self.left + j * self.cell_size + 4,\r\n                                      self.top + i * self.cell_size + self.cell_size - 4),\r\n                                     width=2)\r\n                    pygame.draw.line(screen, (0, 0, 255),\r\n                                     (self.left + j * self.cell_size + 4,\r\n                                      self.top + i * self.cell_size + 4),\r\n                                     (self.left + j * self.cell_size + self.cell_size - 4,\r\n                                      self.top + i * self.cell_size + self.cell_size - 4),\r\n                                     width=2)\r\n                else:\r\n                    pygame.draw.rect(screen, (60, 210, 92),\r\n                                     (self.left + j * self.cell_size, self.top + i * self.cell_size, self.cell_size,\r\n                                      self.cell_size), 1)\r\n\r\n    # def set_cell(self, cell_x, cell_y):\r\n    #     self.board[cell_y][cell_x] = 1\r\n\r\n\r\nclass Player:\r\n    def __init__(self, pos_x, pos_y):\r\n        self.pos_x = pos_x\r\n        self.pos_y = pos_y\r\n\r\n    def move(self, direction):\r\n        if direction == 'right':\r\n            self.pos_x += 1\r\n            return True\r\n        if direction == 'left' and self.pos_x > 0:\r\n            self.pos_x -= 1\r\n            return True\r\n        if direction == 'top' and self.pos_y > 0:\r\n            self.pos_y -= 1\r\n            return True\r\n        if direction == 'bottom':\r\n            self.pos_y += 1\r\n            return True\r\n\r\n\r\nclass Game:\r\n    def __init__(self):\r\n        self.board = Board(17, 12)\r\n        self.board.set_view(0, 165, 55)\r\n        self.player = Player(2, 0)\r\n        # self.board.set_cell(self.player.pos_x, self.player.pos_y)\r\n\r\n        self.all_sprites = pygame.sprite.Group()\r\n\r\n    def load_image(self, name, colorkey=None):\r\n        fullname = os.path.join('', name)\r\n        # если файл не существует, то выходим\r\n        if not os.path.isfile(fullname):\r\n            print(f\"Файл с изображением '{fullname}' не найден\")\r\n            sys.exit()\r\n        image = pygame.image.load(fullname)\r\n        if colorkey is not None:\r\n            image = image.convert()\r\n            if colorkey == -1:\r\n                colorkey = image.get_at((0, 0))\r\n            image.set_colorkey(colorkey)\r\n        else:\r\n            image = image.convert_alpha()\r\n        return image\r\n\r\n    def set_player(self):\r\n        self.board.set_cell(self.player.pos_x, self.player.pos_y)\r\n\r\n\r\nif __name__ == '__main__':\r\n    pygame.init()\r\n    size = width, height = 935, 660\r\n    screen = pygame.display.set_mode(size)\r\n    pygame.display.set_caption('Инициализация игры')\r\n    running = True\r\n    game = Game()\r\n    sprite = pygame.sprite.Sprite()\r\n    sprite.image = game.load_image('player.png', -1)\r\n    sprite.rect = sprite.image.get_rect(topleft=(game.board.cell_size * game.player.pos_x,\r\n                                                 game.board.cell_size * (game.player.pos_y + 3)))\r\n    game.all_sprites.add(sprite)\r\n    while running:\r\n\r\n        for event in pygame.event.get():\r\n            if event.type == pygame.QUIT:\r\n                running = False\r\n            if event.type == pygame.KEYDOWN:\r\n                if event.key == pygame.K_LEFT:\r\n                    if sprite.rect.left != 0:\r\n                        game.player.move('left')\r\n                        sprite.rect.left -= game.board.cell_size\r\n                    print(game.player.pos_x, game.player.pos_y)\r\n                elif event.key == pygame.K_RIGHT:\r\n                    if sprite.rect.left != 880:\r\n                        game.player.move('right')\r\n                        sprite.rect.left += game.board.cell_size\r\n                    print(game.player.pos_x, game.player.pos_y)\r\n                elif event.key == pygame.K_UP:\r\n                    if sprite.rect.top != 0:\r\n                        game.player.move('top')\r\n                        sprite.rect.top -= game.board.cell_size\r\n                    print(game.player.pos_x, game.player.pos_y)\r\n                elif event.key == pygame.K_DOWN:\r\n\r\n                    if sprite.rect.top != 605:\r\n                        game.player.move('bottom')\r\n                        sprite.rect.top += game.board.cell_size\r\n\r\n                    print(game.player.pos_x, game.player.pos_y)\r\n        screen.fill((0, 0, 0))\r\n\r\n        game.board.render(screen)\r\n        game.all_sprites.draw(screen)\r\n        pygame.display.flip()\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/main.py b/main.py
+--- a/main.py	
++++ b/main.py	
+@@ -23,22 +23,10 @@
+         for i, line in enumerate(self.board):
+             for j, elem in enumerate(line):
+                 if elem == 1:
+-                    rect = (
+-                        self.left + j * self.cell_size, self.top + i * self.cell_size, self.cell_size, self.cell_size)
+-                    pygame.draw.rect(screen, (0, 0, 0), rect)
+-                    pygame.draw.rect(screen, (255, 255, 255), rect, 1)
+-                    pygame.draw.line(screen, (0, 0, 255),
+-                                     (self.left + j * self.cell_size + self.cell_size - 4,
+-                                      self.top + i * self.cell_size + 4),
+-                                     (self.left + j * self.cell_size + 4,
+-                                      self.top + i * self.cell_size + self.cell_size - 4),
+-                                     width=2)
+-                    pygame.draw.line(screen, (0, 0, 255),
+-                                     (self.left + j * self.cell_size + 4,
+-                                      self.top + i * self.cell_size + 4),
+-                                     (self.left + j * self.cell_size + self.cell_size - 4,
+-                                      self.top + i * self.cell_size + self.cell_size - 4),
+-                                     width=2)
++                    land = pygame.sprite.Sprite()
++                    land.image = game.load_image('creature.png', -1)
++                    land.rect = land.image.get_rect()
++
+                 else:
+                     pygame.draw.rect(screen, (60, 210, 92),
+                                      (self.left + j * self.cell_size, self.top + i * self.cell_size, self.cell_size,
+@@ -104,11 +92,15 @@
+     pygame.display.set_caption('Инициализация игры')
+     running = True
+     game = Game()
+-    sprite = pygame.sprite.Sprite()
+-    sprite.image = game.load_image('player.png', -1)
+-    sprite.rect = sprite.image.get_rect(topleft=(game.board.cell_size * game.player.pos_x,
++    land = pygame.sprite.Sprite()
++    land.image = game.load_image('creature.png', -1)
++    land.rect = land.image.get_rect()
++    player = pygame.sprite.Sprite()
++    player.image = game.load_image('player.png',123)
++    player.rect = player.image.get_rect(topleft=(game.board.cell_size * game.player.pos_x,
+                                                  game.board.cell_size * (game.player.pos_y + 3)))
+-    game.all_sprites.add(sprite)
++    game.all_sprites.add(player)
++    game.all_sprites.add(land)
+     while running:
+ 
+         for event in pygame.event.get():
+@@ -116,25 +108,25 @@
+                 running = False
+             if event.type == pygame.KEYDOWN:
+                 if event.key == pygame.K_LEFT:
+-                    if sprite.rect.left != 0:
++                    if player.rect.left != 0:
+                         game.player.move('left')
+-                        sprite.rect.left -= game.board.cell_size
++                        player.rect.left -= game.board.cell_size
+                     print(game.player.pos_x, game.player.pos_y)
+                 elif event.key == pygame.K_RIGHT:
+-                    if sprite.rect.left != 880:
++                    if player.rect.left != 880:
+                         game.player.move('right')
+-                        sprite.rect.left += game.board.cell_size
++                        player.rect.left += game.board.cell_size
+                     print(game.player.pos_x, game.player.pos_y)
+                 elif event.key == pygame.K_UP:
+-                    if sprite.rect.top != 0:
++                    if player.rect.top != 0:
+                         game.player.move('top')
+-                        sprite.rect.top -= game.board.cell_size
++                        player.rect.top -= game.board.cell_size
+                     print(game.player.pos_x, game.player.pos_y)
+                 elif event.key == pygame.K_DOWN:
+ 
+-                    if sprite.rect.top != 605:
++                    if player.rect.top != 605:
+                         game.player.move('bottom')
+-                        sprite.rect.top += game.board.cell_size
++                        player.rect.top += game.board.cell_size
+ 
+                     print(game.player.pos_x, game.player.pos_y)
+         screen.fill((0, 0, 0))

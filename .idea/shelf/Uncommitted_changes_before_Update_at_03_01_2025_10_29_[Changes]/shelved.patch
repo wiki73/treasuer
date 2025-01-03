@@ -1,0 +1,330 @@
+Index: main.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import os\r\nimport sys\r\nimport pygame\r\n\r\n\r\nclass Board:\r\n    def __init__(self, width, height):\r\n        self.width = width\r\n        self.height = height\r\n        self.board = [[0] * width for _ in range(height)]\r\n        self.left = 0\r\n        self.top = 0\r\n        self.cell_size = 30\r\n\r\n    def set_view(self, left, top, cell_size):\r\n        self.left = left\r\n        self.top = top\r\n        self.cell_size = cell_size\r\n\r\n    def render(self, screen):\r\n        for i, line in enumerate(self.board):\r\n            for j, elem in enumerate(line):\r\n                if elem == 1:\r\n                    rect = (\r\n                        self.left + j * self.cell_size,\r\n                        self.top + i * self.cell_size,\r\n                        self.cell_size,\r\n                        self.cell_size\r\n                    )\r\n                    pygame.draw.rect(screen, (0, 0, 0), rect)\r\n                    pygame.draw.rect(screen, (255, 255, 255), rect, 1)\r\n                    pygame.draw.line(screen, (0, 0, 255),\r\n                                     (self.left + j * self.cell_size + self.cell_size - 4,\r\n                                      self.top + i * self.cell_size + 4),\r\n                                     (self.left + j * self.cell_size + 4,\r\n                                      self.top + i * self.cell_size + self.cell_size - 4),\r\n                                     width=2)\r\n                    pygame.draw.line(screen, (0, 0, 255),\r\n                                     (self.left + j * self.cell_size + 4,\r\n                                      self.top + i * self.cell_size + 4),\r\n                                     (self.left + j * self.cell_size + self.cell_size - 4,\r\n                                      self.top + i * self.cell_size + self.cell_size - 4),\r\n                                     width=2)\r\n                else:\r\n                    pygame.draw.rect(screen, (60, 210, 92),\r\n                                     (self.left + j * self.cell_size,\r\n                                      self.top + i * self.cell_size,\r\n                                      self.cell_size,\r\n                                      self.cell_size), 1)\r\n\r\n\r\nclass Player:\r\n    def __init__(self, pos_x, pos_y):\r\n        self.pos_x = pos_x\r\n        self.pos_y = pos_y\r\n\r\n    def move(self, direction):\r\n        if direction == 'right':\r\n            self.pos_x += 1\r\n            return True\r\n        if direction == 'left' and self.pos_x > 0:\r\n            self.pos_x -= 1\r\n            return True\r\n        if direction == 'top' and self.pos_y > 0:\r\n            self.pos_y -= 1\r\n            return True\r\n        if direction == 'bottom':\r\n            self.pos_y += 1\r\n            return True\r\n\r\n\r\nclass Game:\r\n    def __init__(self):\r\n        # Инициализация всех атрибутов игры\r\n        pygame.init()\r\n        size = width, height = 935, 660\r\n        screen = pygame.display.set_mode(size)\r\n        pygame.display.set_caption('Инициализация игры')\r\n\r\n        # Инициализация объектов игры\r\n        self.board = Board(17, 12)\r\n        self.board.set_view(0, 165, 55)\r\n        self.player = Player(2, 0)\r\n\r\n        # Инициализация группы спрайтов\r\n        self.all_sprites = pygame.sprite.Group()\r\n\r\n    def load_image(self, name, colorkey=None):\r\n        fullname = os.path.join('', name)\r\n        if not os.path.isfile(fullname):\r\n            print(f\"Файл с изображением '{fullname}' не найден\")\r\n            sys.exit()\r\n\r\n        image = pygame.image.load(fullname)\r\n\r\n        if colorkey is not None:\r\n            image = image.convert()\r\n            if colorkey == -1:\r\n                colorkey = image.get_at((0, 0))\r\n            image.set_colorkey(colorkey)\r\n        else:\r\n            image = image.convert_alpha()\r\n\r\n        return image\r\n\r\n    def set_player(self):\r\n        # Метод для установки позиции игрока на доске\r\n        pass\r\n\r\n\r\nif __name__ == '__main__':\r\n    size = width, height = 935, 660\r\n    screen = pygame.display.set_mode(size)\r\n    pygame.display.set_caption('Инициализация игры')\r\n    running = True\r\n\r\n    game = Game()\r\n\r\n    sprite = pygame.sprite.Sprite()\r\n    sprite.image = game.load_image('player.png', -1)\r\n    sprite.rect = sprite.image.get_rect(topleft=(game.board.cell_size * game.player.pos_x,\r\n                                                 game.board.cell_size * (game.player.pos_y + 3)))\r\n\r\n    game.all_sprites.add(sprite)  # Добавляем спрайт игрока в группу спрайтов\r\n\r\n    move_direction = None\r\n    last_move_time = pygame.time.get_ticks()\r\n    move_interval = 900  # Интервал в миллисекундах\r\n\r\n    while running:\r\n\r\n        for event in pygame.event.get():\r\n            if event.type == pygame.QUIT:\r\n                running = False\r\n\r\n            if event.type == pygame.KEYDOWN:\r\n                if event.key == pygame.K_LEFT:\r\n                    move_direction = 'left'\r\n                elif event.key == pygame.K_RIGHT:\r\n                    move_direction = 'right'\r\n                elif event.key == pygame.K_UP:\r\n                    move_direction = 'top'\r\n                elif event.key == pygame.K_DOWN:\r\n                    move_direction = 'bottom'\r\n\r\n            if event.type == pygame.KEYUP:\r\n                move_direction = None\r\n\r\n        current_time = pygame.time.get_ticks()\r\n\r\n        if move_direction and current_time - last_move_time >= move_interval:\r\n            if move_direction == 'left':\r\n                game.player.move('left')\r\n                sprite.rect.left -= game.board.cell_size\r\n            elif move_direction == 'right':\r\n                game.player.move('right')\r\n                sprite.rect.left += game.board.cell_size\r\n            elif move_direction == 'top':\r\n                game.player.move('top')\r\n                sprite.rect.top -= game.board.cell_size\r\n            elif move_direction == 'bottom':\r\n                game.player.move('bottom')\r\n                sprite.rect.top += game.board.cell_size\r\n\r\n            last_move_time = current_time\r\n\r\n        screen.fill((0, 0, 0))\r\n\r\n        game.board.render(screen)\r\n        game.all_sprites.draw(screen)\r\n\r\n        sprite.rect.topleft = (game.board.cell_size * game.player.pos_x,\r\n                               game.board.cell_size * (game.player.pos_y + 3))\r\n\r\n        pygame.display.flip()\r\n\r\n    pygame.quit()\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/main.py b/main.py
+--- a/main.py	(revision 2e6b7861431c3a5f293229c3826c01b4a2791207)
++++ b/main.py	(date 1735889364628)
+@@ -8,82 +8,117 @@
+         self.width = width
+         self.height = height
+         self.board = [[0] * width for _ in range(height)]
++        self.cell_states = [[0] * width for _ in range(height)]  # Отслеживание состояния клеток
+         self.left = 0
+         self.top = 0
+-        self.cell_size = 30
++        self.cell_width = 68
++        self.cell_height = 52
++        self.default_cell_image = pygame.transform.scale(self.load_image('einschlief.png'),
++                                                         (self.cell_width, self.cell_height))
++        self.activated_cell_image = pygame.transform.scale(self.load_image('aufgeräumt.png'), (
++            self.cell_width, self.cell_height))  # Изображение для активированных клеток
++        # Изменено имя файла на extra-depth.png
++        self.blocked_cell_image = pygame.transform.scale(self.load_image('extra-depth.png'), (
++            self.cell_width, self.cell_height))  # Изображение для недоступных клеток
++
++    def load_image(self, name, colorkey=None):
++        if not os.path.isfile(name):
++            print(f"Файл с изображением '{name}' не найден")
++            sys.exit()
++
++        image = pygame.image.load(name)
++
++        if colorkey is not None:
++            image = image.convert()
++            if colorkey == -1:
++                colorkey = image.get_at((0, 0))
++            image.set_colorkey(colorkey)
++        else:
++            image = image.convert_alpha()
++
++        return image
+ 
+     def set_view(self, left, top, cell_size):
+         self.left = left
+         self.top = top
+-        self.cell_size = cell_size
+ 
+-    def render(self, screen):
+-        for i, line in enumerate(self.board):
+-            for j, elem in enumerate(line):
+-                if elem == 1:
+-                    rect = (
+-                        self.left + j * self.cell_size,
+-                        self.top + i * self.cell_size,
+-                        self.cell_size,
+-                        self.cell_size
+-                    )
+-                    pygame.draw.rect(screen, (0, 0, 0), rect)
+-                    pygame.draw.rect(screen, (255, 255, 255), rect, 1)
+-                    pygame.draw.line(screen, (0, 0, 255),
+-                                     (self.left + j * self.cell_size + self.cell_size - 4,
+-                                      self.top + i * self.cell_size + 4),
+-                                     (self.left + j * self.cell_size + 4,
+-                                      self.top + i * self.cell_size + self.cell_size - 4),
+-                                     width=2)
+-                    pygame.draw.line(screen, (0, 0, 255),
+-                                     (self.left + j * self.cell_size + 4,
+-                                      self.top + i * self.cell_size + 4),
+-                                     (self.left + j * self.cell_size + self.cell_size - 4,
+-                                      self.top + i * self.cell_size + self.cell_size - 4),
+-                                     width=2)
++    def activate_cell(self, x, y):
++        if 0 <= x < self.width and 0 <= y < self.height:
++            self.cell_states[y][x] = 1  # Помечаем эту клетку как активированную
++
++    def render(self, screen, offset_x, offset_y):
++        for i in range(self.height):
++            for j in range(self.width):
++                # Отрисовка недоступных клеток по бокам и внизу
++                if j == 0 or j == self.width - 1 or i == self.height - 1:
++                    # Левый и правый край и нижний ряд
++                    screen.blit(self.blocked_cell_image, (offset_x + j * self.cell_width,
++                                                          offset_y + i * self.cell_height))
++                elif i == 0 and (j == 0 or j == self.width - 1):
++                    # Крайние клетки верхнего ряда как непроходимые
++                    screen.blit(self.blocked_cell_image, (offset_x + j * self.cell_width,
++                                                          offset_y + i * self.cell_height))
++                elif i == 0:
++                    # Пустые клетки верхнего ряда без спрайтов
++                    continue
++                elif self.cell_states[i][j] == 1:
++                    # Отрисовка изображения активированной клетки
++                    screen.blit(self.activated_cell_image, (offset_x + j * self.cell_width,
++                                                            offset_y + i * self.cell_height))
+                 else:
+-                    pygame.draw.rect(screen, (60, 210, 92),
+-                                     (self.left + j * self.cell_size,
+-                                      self.top + i * self.cell_size,
+-                                      self.cell_size,
+-                                      self.cell_size), 1)
++                    # Отрисовка изображения обычной клетки
++                    screen.blit(self.default_cell_image, (offset_x + j * self.cell_width,
++                                                          offset_y + i * self.cell_height))
+ 
+ 
+ class Player:
+-    def __init__(self, pos_x, pos_y):
++    def __init__(self, pos_x, pos_y, board):
+         self.pos_x = pos_x
+-        self.pos_y = pos_y
++        self.pos_y = pos_y + 1
++        self.board = board
+ 
+     def move(self, direction):
++        new_x, new_y = self.pos_x, self.pos_y
++
+         if direction == 'right':
+-            self.pos_x += 1
+-            return True
+-        if direction == 'left' and self.pos_x > 0:
+-            self.pos_x -= 1
+-            return True
+-        if direction == 'top' and self.pos_y > 0:
+-            self.pos_y -= 1
+-            return True
+-        if direction == 'bottom':
+-            self.pos_y += 1
+-            return True
++            new_x += 1
++        elif direction == 'left':
++            new_x -= 1
++        elif direction == 'bottom':
++            new_y += 1
++
++        # Проверка на доступность новой позиции
++        if new_x >= 0 and new_x < len(self.board.board[0]) and new_y >= 0 and new_y < len(self.board.board):
++            # Проверяем недоступные клетки (боковые и нижний ряд)
++            if not (new_x == 0 or new_x == len(self.board.board[0]) - 1 or new_y == len(self.board.board) - 1 or (
++                    new_y == 0 and (new_x == 0 or new_x == len(self.board.board[0]) - 1))):
++                self.pos_x = new_x
++                self.pos_y = new_y
++                return True
++
++    def enter_cell(self):
++        # Активировать клетку при входе в нее только если это не верхний ряд без спрайтов.
++        if self.pos_y > 0:
++            self.board.activate_cell(self.pos_x, self.pos_y)
+ 
+ 
+ class Game:
+     def __init__(self):
+-        # Инициализация всех атрибутов игры
+         pygame.init()
+         size = width, height = 935, 660
+         screen = pygame.display.set_mode(size)
+         pygame.display.set_caption('Инициализация игры')
+ 
+-        # Инициализация объектов игры
+-        self.board = Board(17, 12)
++        i_width = 53  # Увеличиваем ширину на две клетки
++        i_height = 51  # Увеличиваем высоту на одну клетку
++
++        self.board = Board(i_width, i_height)
+         self.board.set_view(0, 165, 55)
+-        self.player = Player(2, 0)
+ 
+-        # Инициализация группы спрайтов
+-        self.all_sprites = pygame.sprite.Group()
++        initial_pos_x = (self.board.width // 2) - 1
++        initial_pos_y = -1
++
++        self.player = Player(initial_pos_x, initial_pos_y, self.board)
+ 
+     def load_image(self, name, colorkey=None):
+         fullname = os.path.join('', name)
+@@ -103,10 +138,6 @@
+ 
+         return image
+ 
+-    def set_player(self):
+-        # Метод для установки позиции игрока на доске
+-        pass
+-
+ 
+ if __name__ == '__main__':
+     size = width, height = 935, 660
+@@ -117,15 +148,13 @@
+     game = Game()
+ 
+     sprite = pygame.sprite.Sprite()
+-    sprite.image = game.load_image('player.png', -1)
+-    sprite.rect = sprite.image.get_rect(topleft=(game.board.cell_size * game.player.pos_x,
+-                                                 game.board.cell_size * (game.player.pos_y + 3)))
+-
+-    game.all_sprites.add(sprite)  # Добавляем спрайт игрока в группу спрайтов
++    sprite.image = game.load_image('player.png')
++    sprite.rect = sprite.image.get_rect(topleft=(game.board.cell_width * game.player.pos_x,
++                                                 game.board.cell_height * (game.player.pos_y + 2)))
+ 
+     move_direction = None
+     last_move_time = pygame.time.get_ticks()
+-    move_interval = 900  # Интервал в миллисекундах
++    move_interval = 800
+ 
+     while running:
+ 
+@@ -138,8 +167,6 @@
+                     move_direction = 'left'
+                 elif event.key == pygame.K_RIGHT:
+                     move_direction = 'right'
+-                elif event.key == pygame.K_UP:
+-                    move_direction = 'top'
+                 elif event.key == pygame.K_DOWN:
+                     move_direction = 'bottom'
+ 
+@@ -149,29 +176,37 @@
+         current_time = pygame.time.get_ticks()
+ 
+         if move_direction and current_time - last_move_time >= move_interval:
++            previous_pos_x, previous_pos_y = game.player.pos_x, game.player.pos_y
++
+             if move_direction == 'left':
+                 game.player.move('left')
+-                sprite.rect.left -= game.board.cell_size
+             elif move_direction == 'right':
+                 game.player.move('right')
+-                sprite.rect.left += game.board.cell_size
+-            elif move_direction == 'top':
+-                game.player.move('top')
+-                sprite.rect.top -= game.board.cell_size
+             elif move_direction == 'bottom':
+                 game.player.move('bottom')
+-                sprite.rect.top += game.board.cell_size
++
++            # Проверяем, вошел ли игрок в новую клетку и активируем ее.
++            if (previous_pos_x != game.player.pos_x) or (previous_pos_y != game.player.pos_y):
++                game.player.enter_cell()
+ 
+             last_move_time = current_time
+ 
+-        screen.fill((0, 0, 0))
++        screen.fill((2, 137, 255))
++
++        offset_x = width // 2 - sprite.rect.width // 2 - game.board.cell_width * game.player.pos_x
++        offset_y = height // 2 - sprite.rect.height // 2 - game.board.cell_height * (game.player.pos_y + 2)
+ 
+-        game.board.render(screen)
+-        game.all_sprites.draw(screen)
++        game.board.render(screen, offset_x, offset_y)
+ 
+-        sprite.rect.topleft = (game.board.cell_size * game.player.pos_x,
+-                               game.board.cell_size * (game.player.pos_y + 3))
++        sprite.rect.topleft = (game.board.cell_width * game.player.pos_x,
++                               game.board.cell_height * (game.player.pos_y))
++
++        for s in [sprite]:
++            s.rect.x += offset_x
++            s.rect.y += offset_y
++
++        screen.blit(sprite.image, sprite.rect)
+ 
+         pygame.display.flip()
+ 
+-    pygame.quit()
++pygame.quit()
+\ No newline at end of file
+Index: .idea/workspace.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"AutoImportSettings\">\r\n    <option name=\"autoReloadType\" value=\"SELECTIVE\" />\r\n  </component>\r\n  <component name=\"ChangeListManager\">\r\n    <list default=\"true\" id=\"beecb44b-b970-4004-93c9-85e028069899\" name=\"Changes\" comment=\"\">\r\n      <change afterPath=\"$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml\" afterDir=\"false\" />\r\n      <change afterPath=\"$PROJECT_DIR$/.idea/misc.xml\" afterDir=\"false\" />\r\n      <change afterPath=\"$PROJECT_DIR$/.idea/modules.xml\" afterDir=\"false\" />\r\n      <change afterPath=\"$PROJECT_DIR$/.idea/treasuer.iml\" afterDir=\"false\" />\r\n      <change afterPath=\"$PROJECT_DIR$/.idea/vcs.xml\" afterDir=\"false\" />\r\n      <change afterPath=\"$PROJECT_DIR$/.idea/workspace.xml\" afterDir=\"false\" />\r\n      <change afterPath=\"$PROJECT_DIR$/main.py\" afterDir=\"false\" />\r\n    </list>\r\n    <option name=\"SHOW_DIALOG\" value=\"false\" />\r\n    <option name=\"HIGHLIGHT_CONFLICTS\" value=\"true\" />\r\n    <option name=\"HIGHLIGHT_NON_ACTIVE_CHANGELIST\" value=\"false\" />\r\n    <option name=\"LAST_RESOLUTION\" value=\"IGNORE\" />\r\n  </component>\r\n  <component name=\"FileTemplateManagerImpl\">\r\n    <option name=\"RECENT_TEMPLATES\">\r\n      <list>\r\n        <option value=\"Python Script\" />\r\n      </list>\r\n    </option>\r\n  </component>\r\n  <component name=\"Git.Settings\">\r\n    <option name=\"RECENT_GIT_ROOT_PATH\" value=\"$PROJECT_DIR$\" />\r\n  </component>\r\n  <component name=\"ProjectColorInfo\"><![CDATA[{\r\n  \"associatedIndex\": 6\r\n}]]></component>\r\n  <component name=\"ProjectId\" id=\"2r4DsQ1Ss4x5fUih6tsEhP34jGi\" />\r\n  <component name=\"ProjectLevelVcsManager\" settingsEditedManually=\"true\" />\r\n  <component name=\"ProjectViewState\">\r\n    <option name=\"hideEmptyMiddlePackages\" value=\"true\" />\r\n    <option name=\"showLibraryContents\" value=\"true\" />\r\n  </component>\r\n  <component name=\"PropertiesComponent\"><![CDATA[{\r\n  \"keyToString\": {\r\n    \"Python.1111.executor\": \"Run\",\r\n    \"Python.main.executor\": \"Run\",\r\n    \"RunOnceActivity.OpenProjectViewOnStart\": \"true\",\r\n    \"RunOnceActivity.ShowReadmeOnStart\": \"true\",\r\n    \"git-widget-placeholder\": \"master\"\r\n  }\r\n}]]></component>\r\n  <component name=\"RunManager\" selected=\"Python.main\">\r\n    <configuration name=\"1111\" type=\"PythonConfigurationType\" factoryName=\"Python\" temporary=\"true\" nameIsGenerated=\"true\">\r\n      <module name=\"treasuer\" />\r\n      <option name=\"ENV_FILES\" value=\"\" />\r\n      <option name=\"INTERPRETER_OPTIONS\" value=\"\" />\r\n      <option name=\"PARENT_ENVS\" value=\"true\" />\r\n      <envs>\r\n        <env name=\"PYTHONUNBUFFERED\" value=\"1\" />\r\n      </envs>\r\n      <option name=\"SDK_HOME\" value=\"\" />\r\n      <option name=\"WORKING_DIRECTORY\" value=\"$PROJECT_DIR$\" />\r\n      <option name=\"IS_MODULE_SDK\" value=\"true\" />\r\n      <option name=\"ADD_CONTENT_ROOTS\" value=\"true\" />\r\n      <option name=\"ADD_SOURCE_ROOTS\" value=\"true\" />\r\n      <option name=\"SCRIPT_NAME\" value=\"$PROJECT_DIR$/1111.py\" />\r\n      <option name=\"PARAMETERS\" value=\"\" />\r\n      <option name=\"SHOW_COMMAND_LINE\" value=\"false\" />\r\n      <option name=\"EMULATE_TERMINAL\" value=\"false\" />\r\n      <option name=\"MODULE_MODE\" value=\"false\" />\r\n      <option name=\"REDIRECT_INPUT\" value=\"false\" />\r\n      <option name=\"INPUT_FILE\" value=\"\" />\r\n      <method v=\"2\" />\r\n    </configuration>\r\n    <configuration name=\"main\" type=\"PythonConfigurationType\" factoryName=\"Python\" temporary=\"true\" nameIsGenerated=\"true\">\r\n      <module name=\"treasuer\" />\r\n      <option name=\"ENV_FILES\" value=\"\" />\r\n      <option name=\"INTERPRETER_OPTIONS\" value=\"\" />\r\n      <option name=\"PARENT_ENVS\" value=\"true\" />\r\n      <envs>\r\n        <env name=\"PYTHONUNBUFFERED\" value=\"1\" />\r\n      </envs>\r\n      <option name=\"SDK_HOME\" value=\"\" />\r\n      <option name=\"WORKING_DIRECTORY\" value=\"$PROJECT_DIR$\" />\r\n      <option name=\"IS_MODULE_SDK\" value=\"true\" />\r\n      <option name=\"ADD_CONTENT_ROOTS\" value=\"true\" />\r\n      <option name=\"ADD_SOURCE_ROOTS\" value=\"true\" />\r\n      <option name=\"SCRIPT_NAME\" value=\"$PROJECT_DIR$/main.py\" />\r\n      <option name=\"PARAMETERS\" value=\"\" />\r\n      <option name=\"SHOW_COMMAND_LINE\" value=\"false\" />\r\n      <option name=\"EMULATE_TERMINAL\" value=\"false\" />\r\n      <option name=\"MODULE_MODE\" value=\"false\" />\r\n      <option name=\"REDIRECT_INPUT\" value=\"false\" />\r\n      <option name=\"INPUT_FILE\" value=\"\" />\r\n      <method v=\"2\" />\r\n    </configuration>\r\n    <recent_temporary>\r\n      <list>\r\n        <item itemvalue=\"Python.main\" />\r\n        <item itemvalue=\"Python.1111\" />\r\n      </list>\r\n    </recent_temporary>\r\n  </component>\r\n  <component name=\"SharedIndexes\">\r\n    <attachedChunks>\r\n      <set>\r\n        <option value=\"bundled-python-sdk-d68999036c7f-d3b881c8e49f-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-233.14475.56\" />\r\n      </set>\r\n    </attachedChunks>\r\n  </component>\r\n  <component name=\"SpellCheckerSettings\" RuntimeDictionaries=\"0\" Folders=\"0\" CustomDictionaries=\"0\" DefaultDictionary=\"application-level\" UseSingleDictionary=\"true\" transferred=\"true\" />\r\n  <component name=\"TaskManager\">\r\n    <task active=\"true\" id=\"Default\" summary=\"Default task\">\r\n      <changelist id=\"beecb44b-b970-4004-93c9-85e028069899\" name=\"Changes\" comment=\"\" />\r\n      <created>1735809659889</created>\r\n      <option name=\"number\" value=\"Default\" />\r\n      <option name=\"presentableId\" value=\"Default\" />\r\n      <updated>1735809659889</updated>\r\n    </task>\r\n    <servers />\r\n  </component>\r\n  <component name=\"Vcs.Log.Tabs.Properties\">\r\n    <option name=\"TAB_STATES\">\r\n      <map>\r\n        <entry key=\"MAIN\">\r\n          <value>\r\n            <State />\r\n          </value>\r\n        </entry>\r\n      </map>\r\n    </option>\r\n  </component>\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/workspace.xml b/.idea/workspace.xml
+--- a/.idea/workspace.xml	(revision 2e6b7861431c3a5f293229c3826c01b4a2791207)
++++ b/.idea/workspace.xml	(date 1735889380217)
+@@ -5,13 +5,7 @@
+   </component>
+   <component name="ChangeListManager">
+     <list default="true" id="beecb44b-b970-4004-93c9-85e028069899" name="Changes" comment="">
+-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
+-      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+-      <change afterPath="$PROJECT_DIR$/.idea/treasuer.iml" afterDir="false" />
+-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+-      <change afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+     </list>
+     <option name="SHOW_DIALOG" value="false" />
+     <option name="HIGHLIGHT_CONFLICTS" value="true" />
+@@ -28,24 +22,24 @@
+   <component name="Git.Settings">
+     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+   </component>
+-  <component name="ProjectColorInfo"><![CDATA[{
+-  "associatedIndex": 6
+-}]]></component>
++  <component name="ProjectColorInfo">{
++  &quot;associatedIndex&quot;: 6
++}</component>
+   <component name="ProjectId" id="2r4DsQ1Ss4x5fUih6tsEhP34jGi" />
+   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+   <component name="ProjectViewState">
+     <option name="hideEmptyMiddlePackages" value="true" />
+     <option name="showLibraryContents" value="true" />
+   </component>
+-  <component name="PropertiesComponent"><![CDATA[{
+-  "keyToString": {
+-    "Python.1111.executor": "Run",
+-    "Python.main.executor": "Run",
+-    "RunOnceActivity.OpenProjectViewOnStart": "true",
+-    "RunOnceActivity.ShowReadmeOnStart": "true",
+-    "git-widget-placeholder": "master"
++  <component name="PropertiesComponent">{
++  &quot;keyToString&quot;: {
++    &quot;Python.1111.executor&quot;: &quot;Run&quot;,
++    &quot;Python.main.executor&quot;: &quot;Run&quot;,
++    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
++    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
++    &quot;git-widget-placeholder&quot;: &quot;master&quot;
+   }
+-}]]></component>
++}</component>
+   <component name="RunManager" selected="Python.main">
+     <configuration name="1111" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+       <module name="treasuer" />
