@@ -11,8 +11,8 @@ class Board:
         self.cell_states = [[0] * width for _ in range(height)]  # Отслеживание состояния клеток
         self.left = 0
         self.top = 0
-        self.cell_width = 68
-        self.cell_height = 52
+        self.cell_width = 45
+        self.cell_height = 45
         self.default_cell_image = pygame.transform.scale(self.load_image('einschlief.png'),
                                                          (self.cell_width, self.cell_height))
         self.activated_cell_image = pygame.transform.scale(self.load_image('aufgeräumt.png'), (
@@ -75,7 +75,7 @@ class Player:
     def __init__(self, pos_x, pos_y, board):
         self.index = 0
         self.frame_count = 0  # Счетчик кадров для анимации
-        self.frame_delay = 15  # Увеличиваем количество кадров, необходимых для смены изображения
+        self.frame_delay = 40  # Увеличиваем количество кадров, необходимых для смены изображения
 
         # Списки изображений для анимации
         self.list_image_r = [pygame.transform.scale(board.load_image('image_player/r_normal_1.png'), (53, 43)),
@@ -84,7 +84,10 @@ class Player:
         self.list_image_l = [pygame.transform.scale(board.load_image('image_player/l_normal_1.png'), (53, 43)),
                              pygame.transform.scale(board.load_image('image_player/l_drag_2.png'), (53, 43)),
                              pygame.transform.scale(board.load_image('image_player/l_drag_3.png'), (53, 43))]
-
+        self.list_image_b = [pygame.transform.scale(board.load_image('image_player/l_normal_1.png'), (53, 43)),
+                             pygame.transform.scale(board.load_image('image_player/l_drag_2.png'), (53, 43)),
+                             pygame.transform.scale(board.load_image('image_player/l_drag_3.png'), (53, 43)),
+                             pygame.transform.scale(board.load_image('image_player/result_fall01.png'), (53, 43))]
         self.image = self.list_image_r[self.index]  # Первоначальное изображение
         self.pos_x = pos_x
         self.pos_y = pos_y + 1
@@ -109,7 +112,7 @@ class Player:
         elif direction == 'bottom':
             new_y += 1
             self.dirr = 'bottom'
-            self.animation_running = False  # Остановка анимации при движении вниз
+            self.animation_running = True  # Остановка анимации при движении вниз
 
         # Проверка на доступность новой позиции
         if new_x >= 0 and new_x < len(self.board.board[0]) and new_y >= 0 and new_y < len(self.board.board):
@@ -136,6 +139,8 @@ class Player:
                     self.image = self.list_image_r[self.index]  # Обновляем текущее изображение для движения вправо
                 elif self.dirr == 'left' and self.index < len(self.list_image_l):
                     self.image = self.list_image_l[self.index]  # Обновляем текущее изображение для движения влево
+                elif self.dirr == 'bottom' and self.index < len(self.list_image_b):
+                    self.image = self.list_image_b[self.index]  # Обновляем текущее изображение для движения влево
                 else:
                     self.animation_running = False  # Останавливаем анимацию, если все кадры были показаны
                     self.index = 0  # Сбрасываем индекс на первую картинку
@@ -244,15 +249,14 @@ if __name__ == '__main__':
         if move_direction and current_time - last_move_time >= move_interval:
             previous_pos_x, previous_pos_y = game.player.pos_x, game.player.pos_y
 
-            # Двигаем игрока только если камера не заблокирована в этом направлении
-            if move_direction == 'left' and not game.camera_locked['left']:
+            if move_direction == 'left':
                 game.player.move('left')
-            elif move_direction == 'right' and not game.camera_locked['right']:
+            elif move_direction == 'right':
                 game.player.move('right')
             elif move_direction == 'bottom':
                 game.player.move('bottom')
 
-            # Проверяем, вошел ли игрок в новую клетку и активируем ее...
+            # Проверяем, вошел ли игрок в новую клетку и активируем ее.
             if (previous_pos_x != game.player.pos_x) or (previous_pos_y != game.player.pos_y):
                 game.player.enter_cell()
 
