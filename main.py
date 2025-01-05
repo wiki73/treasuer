@@ -9,6 +9,7 @@ class Board:
         self.width = width
         self.height = height
         self.board = [[0] * width for _ in range(height)]
+        print(len(self.board), len(self.board[0]))
         self.cell_states = [[0] * width for _ in range(height)]  # Отслеживание состояния клеток
         self.left = 0
         self.top = 0
@@ -120,7 +121,15 @@ class Player:
             # Проверяем недоступные клетки (боковые и нижний ряд)
             if not (new_x == 0 or new_x == len(self.board.board[0]) - 1 or new_y == len(self.board.board) - 1 or (
                     new_y == 0 and (new_x == 0 or new_x == len(self.board.board[0]) - 1))):
-                game.plus_summ()
+
+                if new_y <= 4:
+                    game.plus_summ(0.02)
+                elif 5 <= new_y <= 10:
+                    game.plus_summ(0.07)
+                elif 11 <= new_y <= 30:
+                    game.plus_summ(0.17)
+                elif 31 <= new_y:
+                    game.plus_summ(0.25)
                 self.pos_x = new_x
                 self.pos_y = new_y
                 return True
@@ -210,19 +219,20 @@ class Game:
         elif self.player.pos_y < 8:  # Если игрок покинул область
             self.camera_locked['down'] = False
 
-    def plus_summ(self):
+    def plus_summ(self, chance_fro_pos):
+        print(chance_fro_pos)
         chance = random.random()
 
         # Проверяем, меньше ли это число 0.07 (7%)
-        if chance < 0.05:
-            print("Событие произошло! Шанс 5% сработал.")
+        if chance < chance_fro_pos:
+            print("сундук")
             self.animation_treasure = True
             self.num_treasure = 2
             self.money += 800
         else:
             chance_2 = random.random()
-            if chance_2 < 0.07:
-                print("Событие произошло! Шанс 7% сработал.")
+            if chance_2 < chance_fro_pos + 0.15:
+                print('каменная хрень')
                 self.animation_treasure = True
                 self.num_treasure = 1
                 self.money += 500
@@ -238,6 +248,7 @@ class Game:
             elif self.num_treasure is not None and self.num_treasure == 2:
                 print(1)
                 self.treasure_image = pygame.transform.scale(game.load_image('treasure_2.png'), (53, 43))
+
     def load_image(self, name, colorkey=None):
         fullname = os.path.join('', name)
         if not os.path.isfile(fullname):
@@ -259,7 +270,7 @@ class Game:
     def draw_money_counter(self):
         # Устанавливаем шрифт и размер текста
         font = pygame.font.Font(None, 36)
-        text_surface = font.render(f'Деньги: {self.money}', True, (255, 255, 255))  # Белый цвет текста
+        text_surface = font.render(f'Деньги: {self.money}', True, (30, 255, 30))  # Белый цвет текста
         self.screen.blit(text_surface, (10, 10))  # Рисуем текст в верхнем левом углу
 
 
@@ -287,7 +298,7 @@ if __name__ == '__main__':
         if game.animation_treasure:
             treasure_pos_x, treasure_pos_y = sprite.rect.x, sprite.rect.y
             draw = True
-            game.animation_treasure =False
+            game.animation_treasure = False
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -345,9 +356,7 @@ if __name__ == '__main__':
         game.update()
 
         if draw:
-
             screen.blit(game.treasure_image, (treasure_pos_x, treasure_pos_y))
-
 
         game.draw_money_counter()
         pygame.display.flip()
