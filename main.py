@@ -1,4 +1,5 @@
 import os
+import random
 import sys
 import pygame
 
@@ -119,6 +120,7 @@ class Player:
             # Проверяем недоступные клетки (боковые и нижний ряд)
             if not (new_x == 0 or new_x == len(self.board.board[0]) - 1 or new_y == len(self.board.board) - 1 or (
                     new_y == 0 and (new_x == 0 or new_x == len(self.board.board[0]) - 1))):
+                game.plus_summ()
                 self.pos_x = new_x
                 self.pos_y = new_y
                 return True
@@ -154,11 +156,16 @@ class Player:
             self.board.activate_cell(self.pos_x, self.pos_y)
 
 
+import pygame
+import os
+import sys
+
+
 class Game:
     def __init__(self):
         pygame.init()
-        size = width, height = 935, 660
-        screen = pygame.display.set_mode(size)
+        self.size = width, height = 935, 660
+        self.screen = pygame.display.set_mode(self.size)
         pygame.display.set_caption('Инициализация игры')
 
         i_width = 53  # Увеличиваем ширину на две клетки
@@ -171,8 +178,20 @@ class Game:
         initial_pos_y = -1
 
         self.player = Player(initial_pos_x, initial_pos_y, self.board)
+
         # Состояние блокировки камеры
         self.camera_locked = {'left': False, 'right': False, 'down': False}
+
+        # Инициализация счётчика денег
+        self.money = 0  # Начальное количество денег
+        self.animation_treasure = False
+        self.show_time = 0  # Время, когда показывали изображение
+        self.treasure_shown = False  # Проверяем, показывалось ли изображение
+        self.treasure_image = None
+        self.treasure_y = 0  # Начальная вертикальная позиция
+        self.treasure_speed = 2  # Скорость подъёма изображения
+        self.treasure_visible = False  # Флаг видимости сокровища
+        self.num_treasure = None
 
     def update_camera(self):
         # Проверяем положение игрока относительно границ
@@ -191,6 +210,34 @@ class Game:
         elif self.player.pos_y < 8:  # Если игрок покинул область
             self.camera_locked['down'] = False
 
+    def plus_summ(self):
+        chance = random.random()
+
+        # Проверяем, меньше ли это число 0.07 (7%)
+        if chance < 0.05:
+            print("Событие произошло! Шанс 5% сработал.")
+            self.animation_treasure = True
+            self.num_treasure = 2
+            self.money += 800
+        else:
+            chance_2 = random.random()
+            if chance_2 < 0.07:
+                print("Событие произошло! Шанс 7% сработал.")
+                self.animation_treasure = True
+                self.num_treasure = 1
+                self.money += 500
+
+            else:
+                print('ниче')
+
+    def update(self):
+        if self.animation_treasure:
+            print(self.num_treasure)
+            if self.num_treasure is not None and self.num_treasure == 1:
+                self.treasure_image = pygame.transform.scale(game.load_image('treasure_1.png'), (53, 43))
+            elif self.num_treasure is not None and self.num_treasure == 2:
+                print(1)
+                self.treasure_image = pygame.transform.scale(game.load_image('treasure_2.png'), (53, 43))
     def load_image(self, name, colorkey=None):
         fullname = os.path.join('', name)
         if not os.path.isfile(fullname):
@@ -209,12 +256,20 @@ class Game:
 
         return image
 
+    def draw_money_counter(self):
+        # Устанавливаем шрифт и размер текста
+        font = pygame.font.Font(None, 36)
+        text_surface = font.render(f'Деньги: {self.money}', True, (255, 255, 255))  # Белый цвет текста
+        self.screen.blit(text_surface, (10, 10))  # Рисуем текст в верхнем левом углу
+
 
 if __name__ == '__main__':
     size = width, height = 935, 660
     screen = pygame.display.set_mode(size)
     pygame.display.set_caption('Инициализация игры')
     running = True
+    treasure_pos_y = None
+    treasure_pos_x = None
 
     game = Game()
 
@@ -226,8 +281,13 @@ if __name__ == '__main__':
     move_direction = None
     last_move_time = pygame.time.get_ticks()
     move_interval = 800
+    draw = False
 
     while running:
+        if game.animation_treasure:
+            treasure_pos_x, treasure_pos_y = sprite.rect.x, sprite.rect.y
+            draw = True
+            game.animation_treasure =False
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -240,6 +300,10 @@ if __name__ == '__main__':
                     move_direction = 'bottom'
             if event.type == pygame.KEYUP:
                 move_direction = None
+        if treasure_pos_y == 0:
+            draw = False
+        if draw:
+            treasure_pos_y -= 1
 
         current_time = pygame.time.get_ticks()
 
@@ -278,6 +342,14 @@ if __name__ == '__main__':
 
         screen.blit(game.player.image, sprite.rect)
         game.player.update()
+        game.update()
+
+        if draw:
+
+            screen.blit(game.treasure_image, (treasure_pos_x, treasure_pos_y))
+
+
+        game.draw_money_counter()
         pygame.display.flip()
 
 pygame.quit()
