@@ -14,12 +14,13 @@ def main():
     game = Game()
 
     sprite = pygame.sprite.Sprite()
-    sprite.rect = pygame.Rect(game.board.cell_width * game.player.pos_x,
-                            game.board.cell_height * (game.player.pos_y + 1),
-                            game.board.cell_width,
-                            game.board.cell_height)
+    sprite.image = game.load_image('player.png')
+    sprite.rect = sprite.image.get_rect(topleft=(game.board.cell_width * game.player.pos_x,
+                                                 game.board.cell_height * (game.player.pos_y + 2)))
 
     move_direction = None
+    last_move_time = pygame.time.get_ticks()
+    move_interval = 800
     draw = False
 
     while running:
@@ -44,15 +45,24 @@ def main():
         if draw:
             treasure_pos_y -= 1
 
+        current_time = pygame.time.get_ticks()
+
         game.update_camera()
 
-        if move_direction:
+        if move_direction and current_time - last_move_time >= move_interval:
+            previous_pos_x, previous_pos_y = game.player.pos_x, game.player.pos_y
+
             if move_direction == 'left':
                 game.player.move('left')
             elif move_direction == 'right':
                 game.player.move('right')
             elif move_direction == 'bottom':
                 game.player.move('bottom')
+
+            if (previous_pos_x != game.player.pos_x) or (previous_pos_y != game.player.pos_y):
+                game.player.enter_cell()
+
+            last_move_time = current_time
 
         screen.fill((2, 137, 255))
 
@@ -62,7 +72,7 @@ def main():
         game.board.render(screen, offset_x, offset_y)
 
         sprite.rect.topleft = (game.board.cell_width * game.player.pos_x,
-                             game.board.cell_height * (game.player.pos_y) +7)
+                               game.board.cell_height * (game.player.pos_y))
 
         for s in [sprite]:
             s.rect.x += offset_x
@@ -76,7 +86,6 @@ def main():
             screen.blit(game.treasure_image, (treasure_pos_x, treasure_pos_y))
 
         game.draw_money_counter()
-        game.draw_health()
         pygame.display.flip()
 
     pygame.quit()
