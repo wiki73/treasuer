@@ -1,14 +1,11 @@
 import pygame
 from utils import load_image
 import random
-
-
 class Player:
     def __init__(self, pos_x, pos_y, board, game):
         self.index = 0
         self.frame_count = 0
         self.frame_delay = 15
-
         self.list_image_r = [
             pygame.transform.scale(load_image('image_player/r_normal_1.png'), (60, 43)),
             pygame.transform.scale(load_image('image_player/r_drag_1.png'), (60, 43)),
@@ -35,7 +32,6 @@ class Player:
         self.target_x = pos_x
         self.target_y = pos_y
         self.is_moving = False
-
     def check_surrounding_enemies(self, x, y):
         # Проверяем все соседние клетки на наличие врагов
         neighbors = [
@@ -55,7 +51,6 @@ class Player:
                 enemy_count += 1
         
         return enemy_count
-
     def move(self, direction):
         if self.is_moving or self.animation_running:
             return False
@@ -84,39 +79,42 @@ class Player:
                     self.animation_running = True
                     self.board.activate_cell(new_x, new_y)
                     
-                    chance = random.random()
-                    enemy_chance = random.random()
-                    
-                    # Проверяем количество врагов вокруг текущей позиции игрока
-                    surrounding_enemies = self.check_surrounding_enemies(self.pos_x, self.pos_y)
-                    
-                    # Размещаем врага только если рядом с игроком не больше одного врага
-                    if enemy_chance < 0.30 and surrounding_enemies < 2:
-                        self.board.place_enemy(new_x, new_y)
-                    elif new_y <= 4:
-                        if chance < 0.20:
-                            if random.random() < 0.8:
-                                self.board.place_item(new_x, new_y, 1)
-                            else:
-                                self.board.place_item(new_x, new_y, 2)
-                    elif 5 <= new_y <= 10:
-                        if chance < 0.25:
-                            if random.random() < 0.85:
-                                self.board.place_item(new_x, new_y, 1)
-                            else:
-                                self.board.place_item(new_x, new_y, 2)
-                    elif 11 <= new_y <= 30:
-                        if chance < 0.35:
-                            if random.random() < 0.9:
-                                self.board.place_item(new_x, new_y, 1)
-                            else:
-                                self.board.place_item(new_x, new_y, 2)
-                    elif 31 <= new_y:
-                        if chance < 0.45:
-                            if random.random() < 0.95:
-                                self.board.place_item(new_x, new_y, 1)
-                            else:
-                                self.board.place_item(new_x, new_y, 2)
+                    # Генерируем врагов и предметы только если это не начальные уровни (y > 3)
+                    if new_y > 3:
+                        chance = random.random()
+                        enemy_chance = random.random()
+                        
+                        surrounding_enemies = self.check_surrounding_enemies(self.pos_x, self.pos_y)
+                        
+                        if enemy_chance < 0.30 and surrounding_enemies < 2:
+                            self.board.place_enemy(new_x, new_y)
+                            
+                        if new_y <= 4:
+                            if chance < 0.20:
+                                if random.random() < 0.8:
+                                    self.board.place_item(new_x, new_y, 1)
+                                else:
+                                    self.board.place_item(new_x, new_y, 2)
+                        elif 5 <= new_y <= 10:
+                            if chance < 0.25:
+                                if random.random() < 0.85:
+                                    self.board.place_item(new_x, new_y, 1)
+                                else:
+                                    self.board.place_item(new_x, new_y, 2)
+                        elif 11 <= new_y <= 30:
+                            if chance < 0.35:
+                                if random.random() < 0.9:
+                                    self.board.place_item(new_x, new_y, 1)
+                                else:
+                                    self.board.place_item(new_x, new_y, 2)
+                        elif 31 <= new_y:
+                            if chance < 0.45:
+                                if random.random() < 0.95:
+                                    self.board.place_item(new_x, new_y, 1)
+                                else:
+                                    self.board.place_item(new_x, new_y, 2)
+                    self.target_x = new_x
+                    self.target_y = new_y
                     return True
                     
                 # Если блок активирован
@@ -139,7 +137,6 @@ class Player:
                     return True
                     
         return False
-
     def update(self):
         if self.animation_running:
             self.frame_count += 1
@@ -161,7 +158,6 @@ class Player:
                         self.pos_y = self.target_y
                         self.is_moving = False
                     self.image = self.list_image_r[self.index] if self.dirr == 'right' else self.list_image_l[self.index]
-
     def enter_cell(self):
         if self.pos_y > 0:
             self.board.activate_cell(self.pos_x, self.pos_y)
