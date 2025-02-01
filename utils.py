@@ -1,7 +1,6 @@
 import os
 import sys
 import pygame
-
 def load_image(name, colorkey=None):
     fullname = os.path.join('', name)
     if not os.path.isfile(fullname):
@@ -17,7 +16,6 @@ def load_image(name, colorkey=None):
     else:
         image = image.convert_alpha()
     return image
-
 def create_heart_surface(width=30, height=30, color=(255, 0, 0), empty=False):
     heart = pygame.Surface((width, height), pygame.SRCALPHA)
     

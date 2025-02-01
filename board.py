@@ -1,6 +1,5 @@
 import pygame
 from utils import load_image
-
 class Board:
     def __init__(self, width, height):
         self.width = width
@@ -26,29 +25,22 @@ class Board:
         ]
         self.enemy_frame = 0
         self.enemy_animation_counter = 0
-
     def set_view(self, left, top, cell_size):
         self.left = left
         self.top = top
-
     def activate_cell(self, x, y):
         if 0 <= x < self.width and 0 <= y < self.height:
             self.cell_states[y][x] = 1
-
     def place_item(self, x, y, item_type):
         self.cell_items[y][x] = item_type
-
     def remove_item(self, x, y):
         item = self.cell_items[y][x]
         self.cell_items[y][x] = None
         return item
-
     def place_enemy(self, x, y):
         self.cell_enemies[y][x] = True
-
     def remove_enemy(self, x, y):
         self.cell_enemies[y][x] = None
-
     def render(self, screen, offset_x, offset_y):
         # Сначала отрисовываем все обычные клетки
         for i in range(self.height):
@@ -76,13 +68,11 @@ class Board:
                 elif self.cell_items[i][j] == 2:  # Сундук
                     screen.blit(pygame.transform.scale(load_image('treasure_2.png'), (self.cell_width, self.cell_height)),
                               (offset_x + j * self.cell_width, offset_y + i * self.cell_height))
-
         # Анимация врагов
         self.enemy_animation_counter += 1
         if self.enemy_animation_counter >= 15:  # Скорость анимации
             self.enemy_animation_counter = 0
             self.enemy_frame = (self.enemy_frame + 1) % 2
-
         # Отрисовка врагов
         for i in range(self.height):
             for j in range(self.width):
