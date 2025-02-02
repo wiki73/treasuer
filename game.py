@@ -62,7 +62,7 @@ class Game:
                 self.num_treasure = 1
                 self.money += 500
             else:
-                print('ниче')
+                print('ничего')
     def update_camera(self):
         if self.player.pos_x <= 7:
             self.camera_locked['left'] = True
@@ -86,7 +86,7 @@ class Game:
                 self.treasure_image = pygame.transform.scale(load_image('treasure_2.png'), (53, 43))
     def draw_money_counter(self):
         font = pygame.font.Font(None, 36)
-        text_surface = font.render(f'Деньги: {self.money}', True, (30, 255, 30))
+        text_surface = font.render(f'Деньги: {self.money}', True, (255, 255, 255))
         self.screen.blit(text_surface, (10, 10))
     def draw_health(self):
         for i in range(self.max_health):

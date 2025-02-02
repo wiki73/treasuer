@@ -17,7 +17,7 @@ class Board:
         self.blocked_cell_image = pygame.transform.scale(load_image('extra-depth.png'), (self.cell_width, self.cell_height))
         # Делаем дом в 7 раз шире и в 5 раз выше обычной клетки
         house_width = self.cell_width * 7
-        house_height = self.cell_height * 5
+        house_height = self.cell_height * 3
         self.house = pygame.transform.scale(load_image('дом_2.png'), (house_width, house_height))
         self.enemy_images = [
             pygame.transform.scale(load_image('enemy/L01.png'), (self.cell_width, self.cell_height)),
