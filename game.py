@@ -32,6 +32,7 @@ class Game:
         self.current_health = 5
         self.heart_image = create_heart_surface()
         self.empty_heart_image = create_heart_surface(empty=True)
+        self.player.has_moved = False
     def load_image(self, name, colorkey=None):
         fullname = os.path.join('', name)
         if not os.path.isfile(fullname):
