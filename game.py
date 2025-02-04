@@ -92,17 +92,17 @@ class Game:
     def draw_health(self):
         for i in range(self.max_health):
             if i < self.current_health:
-                self.screen.blit(self.heart_image, 
+                self.screen.blit(self.heart_image,
                                (self.size[0] - (i + 1) * 40 - 10, 10))
             else:
-                self.screen.blit(self.empty_heart_image, 
+                self.screen.blit(self.empty_heart_image,
                                (self.size[0] - (i + 1) * 40 - 10, 10))
     def take_damage(self):
         if self.current_health > 0:
             self.current_health -= 1
             return True
         return False
-        
+
     def add_health(self):
         if self.current_health < self.max_health:
             self.current_health += 1
