@@ -42,7 +42,6 @@ class Board:
     def remove_enemy(self, x, y):
         self.cell_enemies[y][x] = None
     def render(self, screen, offset_x, offset_y):
-        # Сначала отрисовываем все обычные клетки
         for i in range(self.height):
             for j in range(self.width):
                 if j == 0 or j == self.width - 1 or i == self.height - 1 or (i == 0 and (j == 0 or j == self.width - 1)):

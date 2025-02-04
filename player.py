@@ -34,7 +34,6 @@ class Player:
         self.is_moving = False
         self.has_moved = False
     def check_surrounding_enemies(self, x, y):
-        """Проверяет количество врагов вокруг указанной позиции и доступные пути отхода"""
         enemy_count = 0
         escape_paths = 0
         
@@ -60,7 +59,6 @@ class Player:
             new_x, new_y = x + dx, y + dy
             if (0 < new_x < len(self.board.board[0]) - 1 and 
                 0 < new_y < len(self.board.board) - 1):
-                # Путь считается свободным, если клетка не активирована или активирована без врага
                 if (not self.board.cell_states[new_y][new_x] or 
                     (self.board.cell_states[new_y][new_x] and not self.board.cell_enemies[new_y][new_x])):
                     escape_paths += 1
@@ -102,7 +100,6 @@ class Player:
                         
                         if new_y > 1:
                             surrounding_enemies, escape_paths = self.check_surrounding_enemies(new_x, new_y)
-                            # Враг появится только если останется хотя бы 2 пути отхода
                             will_spawn_enemy = (enemy_chance < 0.75 and 
                                               surrounding_enemies == 0 and 
                                               escape_paths >= 1)

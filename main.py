@@ -7,7 +7,6 @@ from database import Database
 import time
 
 def show_title_screen(screen, size):
-    # Загружаем и масштабируем фоновое изображение
     background = pygame.transform.scale(load_image('title.jpg'), size)
     
     # Создаем кнопку
@@ -35,10 +34,8 @@ def show_title_screen(screen, size):
                 if button_rect.collidepoint(event.pos):
                     return True
                     
-        # Отрисовка
         screen.blit(background, (0, 0))
         
-        # Проверка наведения на кнопку
         if button_rect.collidepoint(pygame.mouse.get_pos()):
             pygame.draw.rect(screen, button_hover_color, button_rect)
         else:
@@ -52,7 +49,6 @@ def show_title_screen(screen, size):
     return False
 
 def show_game_over_screen(screen, size, score, time_played):
-    # Затемнение фона
     overlay = pygame.Surface(size)
     overlay.fill((0, 0, 0))
     overlay.set_alpha(200)
@@ -74,24 +70,20 @@ def show_game_over_screen(screen, size, score, time_played):
         panel_height
     )
     
-    # Тень панели
     shadow_rect = panel_rect.copy()
     shadow_rect.x += 5
     shadow_rect.y += 5
     pygame.draw.rect(screen, (30, 30, 30), shadow_rect, border_radius=15)
     
-    # Основная панель
     pygame.draw.rect(screen, brown, panel_rect, border_radius=15)
     
-    # Добавляем текстурные детали на панель
-    for i in range(panel_height // 40):  # Горизонтальные полосы
+    for i in range(panel_height // 40):  
         y = panel_rect.top + i * 40 + 20
-        if y < panel_rect.bottom - 20:  # Не рисуем близко к краям
+        if y < panel_rect.bottom - 20:  
             pygame.draw.line(screen, light_brown,
                            (panel_rect.left + 20, y),
                            (panel_rect.right - 20, y), 1)
     
-    # Добавляем декоративные уголки
     corner_size = 20
     for x, y in [
         (panel_rect.left + 5, panel_rect.top + 5),
@@ -102,7 +94,6 @@ def show_game_over_screen(screen, size, score, time_played):
         pygame.draw.line(screen, gold, (x, y), (x + corner_size, y), 2)
         pygame.draw.line(screen, gold, (x, y), (x, y + corner_size), 2)
     
-    # Рамка панели
     pygame.draw.rect(screen, gold, panel_rect, 3, border_radius=15)
     
     # Кнопки
@@ -126,7 +117,6 @@ def show_game_over_screen(screen, size, score, time_played):
     font = pygame.font.Font(None, 32)
     font_small = pygame.font.Font(None, 24)
     
-    # Заголовок с декоративной подложкой
     header_bg = pygame.Rect(
         panel_rect.left + 20,
         panel_rect.top + 20,
@@ -143,7 +133,6 @@ def show_game_over_screen(screen, size, score, time_played):
     screen.blit(game_over_shadow, (game_over_rect.x + 2, game_over_rect.y + 2))
     screen.blit(game_over_text, game_over_rect)
     
-    # Разделительная линия с декоративными элементами
     line_y = header_bg.bottom + 15
     line_length = panel_width - 60
     center_x = panel_rect.centerx
@@ -152,11 +141,9 @@ def show_game_over_screen(screen, size, score, time_played):
                     (center_x - line_length//2, line_y),
                     (center_x + line_length//2, line_y), 2)
     
-    # Декоративные точки на линии
     for x in [center_x - line_length//2, center_x, center_x + line_length//2]:
         pygame.draw.circle(screen, gold, (x, line_y), 4)
     
-    # Статистика (теперь без иконок)
     money_text = font.render(f"Money: {score:,}", True, (255, 215, 0))
     money_rect = money_text.get_rect(
         centerx=panel_rect.centerx,
@@ -171,12 +158,10 @@ def show_game_over_screen(screen, size, score, time_played):
     )
     screen.blit(time_text, time_rect)
     
-    # Отрисовка кнопок с текстурой
     for button, text, font_obj in [
         (restart_button, "Начать заново", font_small),
         (record_button, "Записать рекорд", font_small)
     ]:
-        # Тень кнопки
         shadow_btn = button.copy()
         shadow_btn.x += 2
         shadow_btn.y += 2
@@ -203,7 +188,6 @@ def show_game_over_screen(screen, size, score, time_played):
         text_rect = button_text.get_rect(center=button.center)
         screen.blit(button_text, text_rect)
     
-    # Обработка событий
     running = True
     while running:
         for event in pygame.event.get():
@@ -220,7 +204,6 @@ def show_game_over_screen(screen, size, score, time_played):
     return False, False
 
 def draw_money_counter(screen, money):
-    # Размеры и позиция (теперь в левом верхнем углу)
     counter_width = 200
     counter_height = 55
     counter_rect = pygame.Rect(15, 15, counter_width, counter_height)
@@ -230,7 +213,6 @@ def draw_money_counter(screen, money):
     light_brown = (160, 82, 45)  # светлый коричневый
     gold = (218, 165, 32)  # золотой
     
-    # Тень
     shadow_rect = counter_rect.copy()
     shadow_rect.x += 3
     shadow_rect.y += 3
@@ -268,11 +250,9 @@ def draw_money_counter(screen, money):
     return counter_rect
 
 def draw_records_button(screen, records_open, records=None):
-    # Кнопка теперь располагается под счетчиком денег
     button_size = 55
     button_rect = pygame.Rect(15, 85, button_size, button_size)
     
-    # Цвета
     brown = (139, 69, 19)
     light_brown = (160, 82, 45)
     gold = (218, 165, 32)
@@ -303,11 +283,10 @@ def draw_records_button(screen, records_open, records=None):
     text_rect = text.get_rect(center=button_rect.center)
     screen.blit(text, text_rect)
     
-    # Если панель открыта, показываем рекорды
     if records_open and records:
         panel_width = 300
         panel_height = min(400, len(records) * 40 + 70)
-        panel_rect = pygame.Rect(15, 155, panel_width, panel_height)  # Изменена позиция Y
+        panel_rect = pygame.Rect(15, 155, panel_width, panel_height)  
         
         # Тень панели
         shadow_panel = pygame.Surface((panel_width + 6, panel_height + 6))
@@ -318,7 +297,7 @@ def draw_records_button(screen, records_open, records=None):
         # Фон панели с градиентом
         s = pygame.Surface((panel_width, panel_height))
         for i in range(panel_height):
-            alpha = 255 - (i / panel_height * 30)  # Мягкий градиент сверху вниз
+            alpha = 255 - (i / panel_height * 30)  
             current_color = (
                 brown[0] + int((light_brown[0] - brown[0]) * (i / panel_height)),
                 brown[1] + int((light_brown[1] - brown[1]) * (i / panel_height)),
@@ -328,11 +307,9 @@ def draw_records_button(screen, records_open, records=None):
         s.set_alpha(240)
         screen.blit(s, panel_rect)
         
-        # Двойная рамка панели
         pygame.draw.rect(screen, gold, panel_rect, 2)
         pygame.draw.rect(screen, gold, panel_rect.inflate(-8, -8), 1)
         
-        # Заголовок
         title_font = pygame.font.Font(None, 40)
         title = title_font.render("Рекорды", True, (255, 215, 0))
         title_rect = title.get_rect(centerx=panel_rect.centerx, top=panel_rect.top + 15)
@@ -342,12 +319,10 @@ def draw_records_button(screen, records_open, records=None):
         screen.blit(title_shadow, (title_rect.x + 2, title_rect.y + 2))
         screen.blit(title, title_rect)
         
-        # Разделитель
         pygame.draw.line(screen, gold,
                         (panel_rect.left + 20, title_rect.bottom + 10),
                         (panel_rect.right - 20, title_rect.bottom + 10), 2)
         
-        # Список рекордов
         record_font = pygame.font.Font(None, 32)
         y_offset = 70
         for i, (score, time) in enumerate(records[:8]):

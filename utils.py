@@ -22,7 +22,6 @@ def create_heart_surface(width=30, height=30, color=(255, 0, 0), empty=False):
     # Цвет для пустого (серого) сердца
     gray_color = (128, 128, 128) if empty else color
     
-    # Массив пикселей для сердца (1 - закрашенный пиксель, 0 - прозрачный)
     heart_pixels = [
         [0,0,1,1,0,0,0,1,1,0,0],
         [0,1,1,1,1,0,1,1,1,1,0],
@@ -36,7 +35,6 @@ def create_heart_surface(width=30, height=30, color=(255, 0, 0), empty=False):
         [0,0,0,0,0,1,0,0,0,0,0]
     ]
     
-    # Масштабируем пиксели до нужного размера
     pixel_width = width // len(heart_pixels[0])
     pixel_height = height // len(heart_pixels)
     
